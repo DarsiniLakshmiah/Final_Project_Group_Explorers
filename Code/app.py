@@ -1,20 +1,3 @@
-#!/usr/bin/env python3
-"""
-Streamlit App for Figurative Language Detection on Tweets
-
-Models supported:
-  - TFIDF + Logistic Regression   (models/baseline)
-  - BiLSTM                        (models/bilstm)
-  - DistilBERT                    (models/distilbert)  — if transformers/torch work
-
-Input:
-  - User enters a tweet in a text box
-
-Output:
-  - Predicted label: figurative / irony / regular / sarcasm
-  - Class probabilities table
-"""
-
 import os
 import pickle
 import numpy as np
@@ -25,7 +8,6 @@ import joblib
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# Try importing HF/torch for DistilBERT, but handle if not available
 try:
     import torch
     from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
@@ -131,13 +113,12 @@ def predict_distilbert(text: str):
 def main():
     st.set_page_config(page_title="Figurative Language Detection", layout="centered")
 
-    st.title("🗣️ Figurative Language Detection in Tweets")
+    st.title("🗣️ Language Detection in Tweets")
     st.write(
         "Classify a tweet as **figurative**, **irony**, **regular**, or **sarcasm** "
         "using the models you trained (TFIDF+LogReg, BiLSTM, DistilBERT)."
     )
 
-    # Sidebar
     st.sidebar.header("Model Settings")
     model_options = ["TFIDF + Logistic Regression", "BiLSTM"]
     if HF_AVAILABLE:
@@ -147,7 +128,6 @@ def main():
     if not HF_AVAILABLE:
         st.sidebar.warning("DistilBERT disabled (transformers/torch not available in this env).")
 
-    # Main input
     text = st.text_area(
         "Tweet text",
         value="",
@@ -175,18 +155,15 @@ def main():
                 st.error(f"Error while running {model_choice}: {e}")
                 return
 
-        # Show result
         st.subheader("Prediction")
         st.markdown(f"**Predicted label:** `{pred_label}`")
 
-        # Probabilities table
         st.subheader("Class Probabilities")
         df_probs = pd.DataFrame(
             {"Class": class_names, "Probability": probs}
         ).sort_values("Probability", ascending=False)
         st.table(df_probs.style.format({"Probability": "{:.4f}"}))
 
-        # Small chart (Streamlit's built-in bar chart; you can comment this out if you hate bars 😂)
         st.bar_chart(df_probs.set_index("Class"))
 
     st.markdown("---")
