@@ -22,7 +22,6 @@ from sklearn.metrics import (
 
 RANDOM_STATE = 42
 
-# We will use these columns from your Phase-1 output:
 TEXT_COL = "clean_text"
 LABEL_COL = "label"
 
@@ -111,8 +110,6 @@ def build_and_train_baseline(
 
     print("Best params:", grid.best_params_)
     best_clf = grid.best_estimator_
-
-    # ----------- VALIDATION METRICS -----------
     val_preds = best_clf.predict(X_val_vec)
 
     print("\n=== Validation metrics ===")
@@ -120,7 +117,6 @@ def build_and_train_baseline(
     print("Macro F1:", f1_score(y_val, val_preds, average="macro"))
     print("\nClassification report:\n", classification_report(y_val, val_preds))
 
-    # SAVE CONFUSION MATRIX (VALIDATION)
     class_names = [str(i) for i in np.unique(y_train)]
     os.makedirs(output_dir, exist_ok=True)
     save_confusion_matrix(
@@ -131,7 +127,6 @@ def build_and_train_baseline(
         title="Confusion Matrix (Validation)"
     )
 
-    # SAVE MODEL ARTIFACTS
     joblib.dump(tfidf, os.path.join(output_dir, "tfidf_vectorizer.joblib"))
     joblib.dump(best_clf, os.path.join(output_dir, "logreg_baseline.joblib"))
 
