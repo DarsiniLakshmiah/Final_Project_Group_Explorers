@@ -110,22 +110,14 @@ def evaluate_bilstm(test_df, model_dir="models/bilstm"):
 # -------------------------------------------------------------------
 def main():
     test_df = load_test_data("test_clean.csv")
-
-    # 1) Evaluate baseline & BiLSTM
     y_lr, pred_lr, labels_lr, acc_lr, f1_lr = evaluate_baseline(test_df)
     y_lstm, pred_lstm, labels_lstm, acc_lstm, f1_lstm = evaluate_bilstm(test_df)
 
-    # Sanity: same label order
     assert labels_lr == labels_lstm, "Label order mismatch between LR and BiLSTM"
-    labels = labels_lr  # e.g. ['figurative', 'irony', 'regular', 'sarcasm']
-
-    # 2) DistilBERT metrics (from your earlier run)
-    # Test Accuracy: 0.7479985219854662
-    # Test Macro F1: 0.6522444498455375
+    labels = labels_lr  
     acc_bert = 0.7479985219854662
     f1_bert = 0.6522444498455375
 
-    # 3) Build summary table
     results = {
         "Model": ["TFIDF+LogReg", "BiLSTM", "DistilBERT"],
         "Accuracy": [acc_lr, acc_lstm, acc_bert],
@@ -136,7 +128,6 @@ def main():
     print(df_results.to_string(index=False))
     df_results.to_csv("results_summary.csv", index=False)
 
-    # 4) Heatmap of results (Accuracy & Macro F1)
     plt.figure(figsize=(5, 3))
     sns.heatmap(
         df_results.set_index("Model"),
@@ -150,7 +141,6 @@ def main():
     plt.close()
     print("[INFO] Saved: results_heatmap.png")
 
-    # 5) Scatter plot: Accuracy vs Macro F1
     plt.figure(figsize=(5, 4))
     sns.scatterplot(
         data=df_results,
@@ -167,15 +157,9 @@ def main():
     plt.close()
     print("[INFO] Saved: results_scatter.png")
 
-    # 6) Per-class F1 for LR & BiLSTM (computed), DistilBERT (hard-coded from its test report)
     f1_lr_per_class = get_per_class_f1(y_lr, pred_lr, labels)
     f1_lstm_per_class = get_per_class_f1(y_lstm, pred_lstm, labels)
 
-    # From your DistilBERT test classification_report:
-    # figurative: f1 = 0.00
-    # irony:      f1 = 0.80
-    # regular:    f1 = 1.00
-    # sarcasm:    f1 = 0.81
     f1_bert_per_class = [0.00, 0.80, 1.00, 0.81]
 
     per_class_f1 = pd.DataFrame({
@@ -188,7 +172,6 @@ def main():
     print(per_class_f1.to_string(index=False))
     per_class_f1.to_csv("per_class_f1.csv", index=False)
 
-    # Heatmap for per-class F1
     plt.figure(figsize=(6, 3))
     sns.heatmap(
         per_class_f1.set_index("Class"),
@@ -202,7 +185,6 @@ def main():
     plt.close()
     print("[INFO] Saved: per_class_f1_heatmap.png")
 
-    # 7) Extra metrics for LR & BiLSTM (no DistilBERT since we don't have raw preds)
     extra = {
         "Model": ["TFIDF+LogReg", "BiLSTM"],
         "Micro_F1": [
@@ -232,3 +214,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
