@@ -34,16 +34,12 @@ nltk.download("omw-1.4")
 
 #%%
 #==============================CONFIG=========================================
-"""
-You MUST change the 4 paths below according to your folder structure.
-Ensure train.csv and test.csv contain the text column and label column.
-"""
 
 TRAIN_CSV   = r"train.csv"
 TEST_CSV    = r"test.csv"
 
-TEXT_COL    = "tweets"      # <--- change if needed
-LABEL_COL   = "class"      # <--- change if needed
+TEXT_COL    = "tweets"
+LABEL_COL   = "class"
 
 OUT_TRAIN   = r"train_clean.csv"
 OUT_TEST    = r"test_clean.csv"
@@ -227,19 +223,15 @@ if __name__ == "__main__":
     train = pd.read_csv(TRAIN_CSV)
     test  = pd.read_csv(TEST_CSV)
 
-    # Rename columns for uniform handling
     train = train[[TEXT_COL, LABEL_COL]].rename(columns={TEXT_COL: "raw_text", LABEL_COL: "label"})
     test  = test[[TEXT_COL, LABEL_COL]].rename(columns={TEXT_COL: "raw_text", LABEL_COL: "label"})
 
-    # Drop missing rows
     train = train.dropna(subset=["raw_text", "label"]).reset_index(drop=True)
     test  = test.dropna(subset=["raw_text", "label"]).reset_index(drop=True)
 
-    # Preprocess both
     train_clean = preprocess(train, "train")
     test_clean  = preprocess(test, "test")
 
-    # Save cleaned CSVs
     ensure_dir("data/processed")
     train_clean.to_csv(OUT_TRAIN, index=False)
     test_clean.to_csv(OUT_TEST, index=False)
@@ -247,7 +239,6 @@ if __name__ == "__main__":
     print(f"\n[SAVED] Clean train → {OUT_TRAIN}")
     print(f"[SAVED] Clean test → {OUT_TEST}")
 
-    # Run EDA on TRAIN ONLY
     print("\n[EDA] Running corpus EDA on train set...")
     plot_label_distribution(train_clean)
     plot_length(train_clean)
@@ -255,3 +246,4 @@ if __name__ == "__main__":
     summary(train_clean)
 
     print("\n[DONE] Phase 1 finished successfully.")
+
