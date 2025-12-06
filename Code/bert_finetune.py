@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-"""
-04_distilbert_model.py
-Fine-tune DistilBERT for Figurative Language Detection on Tweets
-
-Data: train_clean.csv, test_clean.csv
-Columns (per row):
-  raw_text,label,clean_text,lemma_text,char_len,word_len,num_exclam,num_question,
-  num_hashtags,num_mentions,num_caps,cap_ratio
-
-We use:
-  - clean_text as input text
-  - label as target (figurative, irony, regular, sarcasm)
-
-Run:
-    python bert_finetune.py
-"""
 
 import argparse
 import os
@@ -48,7 +32,6 @@ RANDOM_STATE = 42
 
 TEXT_COL = "clean_text"
 LABEL_COL = "label"
-
 
 # ============================================================
 # Config + Dataset
@@ -108,13 +91,13 @@ def save_confusion_matrix(y_true, y_pred, class_names, out_path, title="Confusio
 
 
 # ============================================================
-# Data loading / preprocessing
+# Data loading/preprocessing
 # ============================================================
+
 def load_data(train_path: str, test_path: str):
     train_df = pd.read_csv(train_path)
     test_df = pd.read_csv(test_path)
 
-    # Expect cleaned columns
     assert TEXT_COL in train_df.columns and LABEL_COL in train_df.columns, \
         f"Expected columns {TEXT_COL}, {LABEL_COL} in train_clean.csv"
     assert TEXT_COL in test_df.columns and LABEL_COL in test_df.columns, \
@@ -138,9 +121,7 @@ def load_data(train_path: str, test_path: str):
 
 
 def encode_labels(train_df, test_df):
-    """
-    Create a stable mapping label -> id based on sorted unique labels.
-    """
+
     all_labels = sorted(train_df[LABEL_COL].unique())
     label2id = {lab: i for i, lab in enumerate(all_labels)}
     id2label = {i: lab for lab, i in label2id.items()}
@@ -224,14 +205,11 @@ def main():
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # 1. Load data
     train_df, test_df = load_data(args.train_csv, args.test_csv)
     train_ids, test_ids, label2id, id2label = encode_labels(train_df, test_df)
 
-    # 2. Train/val split
     X_train, X_val, y_train, y_val = make_splits(train_df, train_ids)
 
-    # 3. Tokenizer & datasets
     tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")
     cfg = TweetConfig(max_length=64)
 
@@ -239,7 +217,6 @@ def main():
     val_dataset = TweetDataset(X_val, y_val, tokenizer, cfg)
     test_dataset = TweetDataset(test_df[TEXT_COL], test_ids, tokenizer, cfg)
 
-    # 4. Model
     model = DistilBertForSequenceClassification.from_pretrained(
         "distilbert-base-uncased",
         num_labels=len(label2id),
@@ -248,7 +225,6 @@ def main():
     )
     model.to(device)
 
-    # 5. Training arguments (minimal, compatible with older transformers)
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         num_train_epochs=args.epochs,
@@ -269,11 +245,9 @@ def main():
         compute_metrics=compute_metrics,
     )
 
-    # 6. Train
     print("Starting DistilBERT training...")
     trainer.train()
 
-    # 7. Evaluate on validation set
     print("Evaluating on validation set...")
     val_output = trainer.predict(val_dataset)
     val_preds = np.argmax(val_output.predictions, axis=-1)
@@ -297,7 +271,6 @@ def main():
         title="DistilBERT Confusion Matrix (Validation)",
     )
 
-    # 8. Evaluate on test set
     print("Evaluating on TEST set...")
     test_output = trainer.predict(test_dataset)
     test_preds = np.argmax(test_output.predictions, axis=-1)
@@ -321,7 +294,6 @@ def main():
         title="DistilBERT Confusion Matrix (Test)",
     )
 
-    # 9. Save model & tokenizer
     trainer.save_model(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
     print(f"Saved fine-tuned DistilBERT model + tokenizer to {args.output_dir}")
