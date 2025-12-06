@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-
-
 # ======================= IMPORTS =====================================
 import os
 import pickle
@@ -37,7 +34,7 @@ LABEL_COL = "label"
 
 MAX_VOCAB = 20000
 MAX_LEN = 50
-EMBEDDING_DIM = 128  # learned embeddings (no GloVe)
+EMBEDDING_DIM = 128
 
 RANDOM_STATE = 42
 
@@ -125,20 +122,16 @@ def main():
 
     ensure_dir(args.output_dir)
 
-    # -------- 1. Load data --------
     train_df, test_df = load_data(args.train_csv, args.test_csv)
 
-    # -------- 2. Encode labels with LabelEncoder (like LR baseline) --------
     le = LabelEncoder()
     y_all = le.fit_transform(train_df[LABEL_COL])
     y_test = le.transform(test_df[LABEL_COL])
 
-    # Save label encoder for later use
     with open(os.path.join(args.output_dir, "label_encoder.pkl"), "wb") as f:
         pickle.dump(le, f)
     print("Label classes:", list(le.classes_))
 
-    # Split train into train / validation
     train_split, val_split, y_train, y_val = train_test_split(
         train_df,
         y_all,
@@ -254,3 +247,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
